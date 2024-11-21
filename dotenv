@@ -1,0 +1,16 @@
+MSS_HOST = 127.0.0.1
+MSS_PORT= 1433
+MSS_USERNAME = levipe
+MSS_PASSWORD= add_password
+MSS_DATABASE= add_dbName
+MSS_ENCRYPT= false
+
+TYPE_ENTITIES=srs/entities/**/*.ts
+
+JWT_SECRET= promocionesAcr
+JWT_EXPIRATION=2d
+
+NODE_ENV=development
+API_ROUTE= /api/v1
+API_SWAGGER=swagger
+PORT_API=3002
