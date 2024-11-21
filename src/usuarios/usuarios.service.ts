@@ -13,7 +13,7 @@ export class UsuariosService {
     private usuarioRepository: Repository<UsuarioEntity>,
   ){}
 
-   async create(createUsuarioDto: CreateUsuarioDto) {
+  async create(createUsuarioDto: CreateUsuarioDto) {
     try{
       const newUsuario = this.usuarioRepository.create({
         nombreUsuario: createUsuarioDto.nombreUsuario,
@@ -75,6 +75,46 @@ export class UsuariosService {
       throw new Error('Error al buscar el usuario con el id: '+error.message);
     }
   }
+
+
+  async findUsersByRole(rol: number) {
+    try {
+      // Convertir el parámetro role a número
+      const parsedRole = Number(rol);
+      if (isNaN(parsedRole)) {
+        return {
+          message: `El valor proporcionado para el rol (${rol}) no es un número válido`,
+          error: "Bad Request",
+          statusCode: HttpStatus.BAD_REQUEST,
+        };
+      }
+  
+      // Buscar usuarios con el rol especificado
+      const usuarios = await this.usuarioRepository.find({
+        where: { rol: parsedRole },
+      });
+  
+      // Verificar si existen usuarios con el rol especificado
+      if (usuarios.length === 0) {
+        return {
+          message: `No existen usuarios con el rol ${parsedRole} para mostrar`,
+          error: "Not Found",
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
+  
+      // Retornar la lista de usuarios con el rol especificado
+      return {
+        statusCode: HttpStatus.OK,
+        usuarios,
+      };
+    } catch (error) {
+      throw new Error(`Error al buscar los usuarios con rol ${rol}: ` + error.message);
+    }
+  }
+  
+  
+  
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
     try{

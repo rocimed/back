@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Res, Query } from '@nestjs/common';
 import { DetalleComandaService } from './detalle-comanda.service';
 import { CreateDetalleComandaDto } from './dto/create-detalle-comanda.dto';
 import { UpdateDetalleComandaDto } from './dto/update-detalle-comanda.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { error } from 'console';
 
 @Controller('detalle-comanda')
@@ -164,6 +164,19 @@ export class DetalleComandaController {
     const resStatus = await this.detalleComandaService.findOne(id);
     if(resStatus.statusCode === HttpStatus.NOT_FOUND)
       return response.status(HttpStatus.NOT_FOUND).json(resStatus);
+    return response.status(HttpStatus.OK).json(resStatus);
+  }
+
+  @Get('detalle-comanda/:estatusDetalle')
+  @ApiQuery({ name: 'estatusDetalle', required: true, type: Number, description: 'Rol de los usuarios a buscar' })
+  async findUsersByRole(@Query('estatusDetalle') estatusDetalle: number, @Res() response) {
+    const resStatus = await this.detalleComandaService.findDetailByEstatus(estatusDetalle);
+    if (resStatus.statusCode === HttpStatus.NOT_FOUND) {
+      return response.status(HttpStatus.NOT_FOUND).json(resStatus);
+    }
+    if (resStatus.statusCode === HttpStatus.BAD_REQUEST) {
+      return response.status(HttpStatus.BAD_REQUEST).json(resStatus);
+    }
     return response.status(HttpStatus.OK).json(resStatus);
   }
 

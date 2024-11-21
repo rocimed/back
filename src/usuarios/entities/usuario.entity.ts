@@ -26,6 +26,4 @@ export class UsuarioEntity {
     @OneToMany(() => MesaEntity, (mesa) => mesa.usuario)
     mesa: MesaEntity[];
 
-    // @OneToMany(() => ComandaEntity, (comanda) => comanda.usuario)
-    // comanda: ComandaEntity[];
 }

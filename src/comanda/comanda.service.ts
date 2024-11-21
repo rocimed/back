@@ -29,18 +29,13 @@ export class ComandaService {
     private detalleComandaRepository: Repository<DetalleComandaEntity>,
   ){}
   async create(createComandaDto: CreateComandaDto) {
-    try {
-      // Verificar que el usuario existe
-      const findUsuario = await this.usuarioRepository.findOne({
-        where: { idUsuario: createComandaDto.fkIdUsuario },
-      });
-  
+    try {  
       // Verificar que la mesa existe
       const findMesa = await this.mesaRepository.findOne({
         where: { idMesa: createComandaDto.fkIdMesa },
       });
   
-      if (!findUsuario || !findMesa) {
+      if ( !findMesa) {
         throw new Error('No se encontró el usuario o la mesa');
       }
   
@@ -127,10 +122,8 @@ export class ComandaService {
           statusCode: HttpStatus.NOT_FOUND,
         };
       }
-
       comandaFind.estatusComanda = updateComandaDto.estatusComanda ?? comandaFind.estatusComanda;
       comandaFind.metodoPago = updateComandaDto.metodoPago ?? comandaFind.metodoPago;
-      // comandaFind.total = updateComandaDto.total ?? comandaFind.total;
 
       await this.comandaRepository.save(comandaFind);
   

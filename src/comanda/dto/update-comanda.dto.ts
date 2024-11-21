@@ -10,8 +10,4 @@ export class UpdateComandaDto /*extends PartialType(CreateComandaDto)*/ {
     @ApiProperty({description:'Metodo de pago al finalizar la comanda'})
     @IsString()
     metodoPago: string;
-
-    // @ApiProperty({description:'Total a pagar de toda la comanda'})
-    // @IsNumber()
-    // total: number;
 }

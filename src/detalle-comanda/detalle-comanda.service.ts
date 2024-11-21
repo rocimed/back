@@ -119,6 +119,43 @@ export class DetalleComandaService {
     }
   }
 
+
+  async findDetailByEstatus(estatusDetalle: number) {
+    try {
+      // Convertir el parámetro role a número
+      const parsedRole = Number(estatusDetalle);
+      if (isNaN(parsedRole)) {
+        return {
+          message: `El valor proporcionado para el estaus (${estatusDetalle}) no es un número válido`,
+          error: "Bad Request",
+          statusCode: HttpStatus.BAD_REQUEST,
+        };
+      }
+      
+      // Buscar usuarios con el rol especificado
+      const detalles = await this.detalleComandaRepository.find({
+        where: { estatusDetalle: parsedRole },
+      });
+  
+      // Verificar si existen usuarios con el rol especificado
+      if (detalles.length === 0) {
+        return {
+          message: `No existen bebidas con el estatusDetalle ${parsedRole} para mostrar`,
+          error: "Not Found",
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
+  
+      // Retornar la lista de usuarios con el rol especificado
+      return {
+        statusCode: HttpStatus.OK,
+        detalles,
+      };
+    } catch (error) {
+      throw new Error(`Error al buscar los bebidas con estatus ${estatusDetalle}: ` + error.message);
+    }
+  }
+
   async update(id: number, updateDetalleComandaDto: UpdateDetalleComandaDto) {
     try{
       const detalleFind = await this.detalleComandaRepository.findOne({
@@ -132,7 +169,6 @@ export class DetalleComandaService {
         }
       }
 
-      detalleFind.cantidad = updateDetalleComandaDto.cantidad ?? detalleFind.cantidad;
       detalleFind.estatusDetalle = updateDetalleComandaDto.estatusDetalle ?? detalleFind.estatusDetalle;
       
       await this.detalleComandaRepository.save(detalleFind);

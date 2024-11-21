@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Res, Query } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { response } from 'express';
 
 @Controller('usuarios')
@@ -156,6 +156,20 @@ export class UsuariosController {
       return response.status(HttpStatus.NOT_FOUND).json(resStatus);
     return response.status(HttpStatus.OK).json(resStatus);
   }
+
+  @Get('usuarios/:rol')
+  @ApiQuery({ name: 'rol', required: true, type: Number, description: 'Rol de los usuarios a buscar' })
+  async findUsersByRole(@Query('rol') rol: number, @Res() response) {
+    const resStatus = await this.usuariosService.findUsersByRole(rol);
+    if (resStatus.statusCode === HttpStatus.NOT_FOUND) {
+      return response.status(HttpStatus.NOT_FOUND).json(resStatus);
+    }
+    if (resStatus.statusCode === HttpStatus.BAD_REQUEST) {
+      return response.status(HttpStatus.BAD_REQUEST).json(resStatus);
+    }
+    return response.status(HttpStatus.OK).json(resStatus);
+  }
+  
 
   @Patch(':id')
   @ApiOperation({summary:'Actualizar un usuario por id de la base de datos', description:'EndPoint que actualiza un objeto de usuario'})

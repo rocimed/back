@@ -7,10 +7,6 @@ export class CreateDetalleComandaDto {
     @IsNumber()
     cantidad:number;
 
-    // @ApiProperty({description:'Estatus de los detalles de la comanda 0=preparando 1=listo'})
-    // @IsNumber()
-    // estatusDetalle:number;
-
     @ApiProperty({ description: 'Id de la comanda, identificador de la comanda a la que corresponde los detalles.'})
     @IsOptional()
     @IsNumber()
