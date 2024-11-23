@@ -66,7 +66,7 @@ export class ComandaService {
   async findAll() {
     try{
       const comandas = await this.comandaRepository.find({
-        relations: ['usuario','mesa','mesa.usuario','detalleComanda','detalleComanda.bebida']
+        relations: ['mesa','mesa.usuario','detalleComanda','detalleComanda.bebida']
       })
 
       if(!comandas || comandas.length===0){
@@ -90,7 +90,7 @@ export class ComandaService {
     try{
       const comandaFind = await this.comandaRepository.findOne({
         where: { idComanda: id },
-        relations: ['usuario','mesa','mesa.usuario','detalleComanda','detalleComanda.bebida']
+        relations: ['mesa','mesa.usuario','detalleComanda','detalleComanda.bebida']
       });
       if(!comandaFind){
         return {
