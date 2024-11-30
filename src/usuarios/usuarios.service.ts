@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UsuarioEntity } from './entities/usuario.entity';
 import { Repository } from 'typeorm';
 import { response } from 'express';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsuariosService {
@@ -14,21 +15,23 @@ export class UsuariosService {
   ){}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
-    try{
+    try {
+      const hashedPassword = await bcrypt.hash(createUsuarioDto.contrasena, 10);
+  
       const newUsuario = this.usuarioRepository.create({
         nombreUsuario: createUsuarioDto.nombreUsuario,
         apellidoPat: createUsuarioDto.apellidoPat,
         apellidoMat: createUsuarioDto.apellidoMat,
-        contrasena: createUsuarioDto.contrasena,
+        contrasena: hashedPassword,
         rol: createUsuarioDto.rol,
       });
+  
       await this.usuarioRepository.save(newUsuario);
-      const response = {
+      return {
         statusCode: HttpStatus.OK,
-        newUsuario
-      }
-      return response;
-    }catch(error){
+        newUsuario,
+      };
+    } catch (error) {
       throw new Error('Error al crear el usuario: ' + error.message);
     }
   }
@@ -167,4 +170,42 @@ export class UsuariosService {
       throw new Error('Error al eliminar el usuario con el id: '+error.message);
     }
   }
+
+  async login(idUsuario: number, contrasena: string) {
+    try {
+      const usuario = await this.usuarioRepository.findOne({
+        where: { idUsuario },
+        select: ['idUsuario', 'nombreUsuario', 'apellidoPat', 'apellidoMat', 'contrasena', 'rol'],
+      });
+
+      if (!usuario) {
+        return {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Usuario no encontrado',
+          error: 'Not Found',
+        };
+      }
+      const isPasswordValid = await bcrypt.compare(contrasena, usuario.contrasena);
+
+      if (!isPasswordValid) {
+        return {
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Credenciales incorrectas',
+          error: 'Unauthorized',
+        };
+      }
+
+      return {
+        statusCode: HttpStatus.OK,
+        usuario,
+      };
+    } catch (error) {
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: `Error en el login: ${error.message}`,
+        error: 'Internal Server Error',
+      };
+    }
+  }
+  
 }
