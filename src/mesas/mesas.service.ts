@@ -20,19 +20,19 @@ export class MesasService {
     try{
       const findUsuario = await this.usuarioRepository.findOne({
         where: { idUsuario: createMesaDto.fkIdUsuario,
-          rol: 0,
+          rol: 1,
         },
       });
       
       if(!findUsuario){
         return {
-          message: "Usuario no encontrado",
+          message: "Usuario no es mesero",
           error: "Not Found",
           statusCode: HttpStatus.NOT_FOUND
         };
       }
       
-      const newMesa = await this.mesaRepository.create({
+      const newMesa = await this.mesaRepository.create({  
         nombreMesa: createMesaDto.nombreMesa,
         fkIdUsuario: createMesaDto.fkIdUsuario,
         estatusMesa: 1,
@@ -119,7 +119,7 @@ export class MesasService {
         const findUsuarios = await this.usuarioRepository.findOne({
           where:{
             idUsuario:updateMesaDto.fkIdUsuario,
-            rol: 0
+            rol: 1
           },
         });
         if(!findUsuarios){
