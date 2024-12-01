@@ -55,6 +55,10 @@ export class UsuariosController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Credenciales incorrectas',
   })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Error interno del servidor',
+  })
   async login(@Body() loginDto: LoginDto, @Res() response) {
     const resStatus = await this.usuariosService.login(
       loginDto.idUsuario,

@@ -138,7 +138,7 @@ export class UsuariosService {
         usuarioFind.rol = updateUsuarioDto.rol?? usuarioFind.rol;
       }
       await this.usuarioRepository.save(usuarioFind);
-      const response = {
+      const response = {  
         statusCode: HttpStatus.OK,
         usuarioFind
       };

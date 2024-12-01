@@ -10,7 +10,7 @@ export class DetalleComandaEntity {
 
     @Column({type:'float', nullable:false})
     cantidad:number;
-
+    
     @Column({type:'float', nullable:false})
     precio:number;
 

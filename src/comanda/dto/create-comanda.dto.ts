@@ -5,11 +5,6 @@ import { IsDateString, IsNotEmpty, IsNumber, Matches, ValidateNested } from "cla
 
 export class CreateComandaDto {
 
-    @ApiProperty({ description: 'Fecha del pedido a la comanda en formato AAAA-MM-DD' })
-    @IsDateString()
-    @Matches(/^\d{4}-\d{2}-\d{2}$/)
-    fechaComanda: Date;
-
     @ApiProperty({ description: 'Id de la mesa, identificador de la mesa a la que corresponde la comanda.'})
     @IsNumber()
     fkIdMesa:number;

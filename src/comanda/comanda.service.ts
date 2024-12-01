@@ -27,85 +27,89 @@ export class ComandaService {
 
     @InjectRepository(DetalleComandaEntity)
     private detalleComandaRepository: Repository<DetalleComandaEntity>,
-  ){}
+  ) {}
+
   async create(createComandaDto: CreateComandaDto) {
-    try {  
+    try {
       // Verificar que la mesa existe
       const findMesa = await this.mesaRepository.findOne({
         where: { idMesa: createComandaDto.fkIdMesa },
       });
-  
-      if ( !findMesa) {
-        throw new Error('No se encontró el usuario o la mesa');
+
+      if (!findMesa) {
+        throw new Error('No se encontró la mesa');
       }
-  
-      // Crear una nueva comanda sin incluir los detalles
       const newComanda = new ComandaEntity();
-      newComanda.fechaComanda = createComandaDto.fechaComanda;
+      newComanda.fechaComanda = new Date(); // Establecer la fecha actual
       newComanda.fkIdMesa = createComandaDto.fkIdMesa;
-      newComanda.estatusComanda = 0; // Estado inicial
-      newComanda.total = 0;          // Total inicial
-      newComanda.metodoPago = 'Tarjeta'; // Método de pago por defecto
-  
-      // Guardar la comanda en la base de datos
+      newComanda.estatusComanda = 0; 
+      newComanda.total = 0; 
+      newComanda.metodoPago = ''; 
+
       const savedComanda = await this.comandaRepository.save(newComanda);
-  
-      // Devolver la respuesta con la comanda creada
       const response = {
         statusCode: HttpStatus.OK,
-        newComanda,
+        newComanda: savedComanda, 
       };
       return response;
-  
     } catch (error) {
       throw new Error('Error al crear la comanda: ' + error.message);
     }
   }
-  
 
   async findAll() {
-    try{
+    try {
       const comandas = await this.comandaRepository.find({
-        relations: ['mesa','mesa.usuario','detalleComanda','detalleComanda.bebida']
-      })
+        relations: [
+          'mesa',
+          'mesa.usuario',
+          'detalleComanda',
+          'detalleComanda.bebida',
+        ],
+      });
 
-      if(!comandas || comandas.length===0){
+      if (!comandas || comandas.length === 0) {
         return {
           message: 'No existen comandas para mostrar',
           error: 'Not Found',
-          statusCode: HttpStatus.NOT_FOUND
+          statusCode: HttpStatus.NOT_FOUND,
         };
       }
       const response = {
         statusCode: HttpStatus.OK,
-        comandas
+        comandas,
       };
       return response;
-    }catch (error){
-      throw new Error('Error al buscar las comandas: '+error.message);
+    } catch (error) {
+      throw new Error('Error al buscar las comandas: ' + error.message);
     }
   }
 
   async findOne(id: number) {
-    try{
+    try {
       const comandaFind = await this.comandaRepository.findOne({
         where: { idComanda: id },
-        relations: ['mesa','mesa.usuario','detalleComanda','detalleComanda.bebida']
+        relations: [
+          'mesa',
+          'mesa.usuario',
+          'detalleComanda',
+          'detalleComanda.bebida',
+        ],
       });
-      if(!comandaFind){
+      if (!comandaFind) {
         return {
           message: 'Comanda no encontrada',
           error: 'Not Found',
           statusCode: HttpStatus.NOT_FOUND,
-        }
+        };
       }
       const response = {
         statusCode: HttpStatus.OK,
-        comandaFind
+        comandaFind,
       };
       return response;
-    }catch (error){
-      throw new Error('Error al buscar la comanda con el id: '+error.message);
+    } catch (error) {
+      throw new Error('Error al buscar la comanda con el id: ' + error.message);
     }
   }
 
@@ -114,7 +118,7 @@ export class ComandaService {
       const comandaFind = await this.comandaRepository.findOne({
         where: { idComanda: id },
       });
-  
+
       if (!comandaFind) {
         return {
           message: 'Comanda no encontrada',
@@ -122,11 +126,13 @@ export class ComandaService {
           statusCode: HttpStatus.NOT_FOUND,
         };
       }
-      comandaFind.estatusComanda = updateComandaDto.estatusComanda ?? comandaFind.estatusComanda;
-      comandaFind.metodoPago = updateComandaDto.metodoPago ?? comandaFind.metodoPago;
+      comandaFind.estatusComanda =
+        updateComandaDto.estatusComanda ?? comandaFind.estatusComanda;
+      comandaFind.metodoPago =
+        updateComandaDto.metodoPago ?? comandaFind.metodoPago;
 
       await this.comandaRepository.save(comandaFind);
-  
+
       const response = {
         statusCode: HttpStatus.OK,
         comandaFind,
@@ -138,11 +144,11 @@ export class ComandaService {
   }
 
   async remove(id: number) {
-    try{
+    try {
       const comandaFind = await this.comandaRepository.findOne({
         where: { idComanda: id },
       });
-      if(!comandaFind){
+      if (!comandaFind) {
         return {
           message: 'Comanda no encontrada',
           error: 'Not Found',
@@ -155,8 +161,10 @@ export class ComandaService {
         message: 'Comanda eliminada correctamente',
       };
       return response;
-    }catch(error){
-      throw new Error('Error al eliminar la comanda con el id: '+error.message);
+    } catch (error) {
+      throw new Error(
+        'Error al eliminar la comanda con el id: ' + error.message,
+      );
     }
   }
 }
