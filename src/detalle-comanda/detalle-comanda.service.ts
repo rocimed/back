@@ -19,7 +19,7 @@ export class DetalleComandaService {
 
     @InjectRepository(BebidaEntity)
     private bebidaRepository: Repository<BebidaEntity>,
-  ){}
+  ) {}
   async create(createDetalleComandaDto: CreateDetalleComandaDto) {
     try {
       // Verificar si la comanda y la bebida existen
@@ -29,25 +29,23 @@ export class DetalleComandaService {
       const findBebida = await this.bebidaRepository.findOne({
         where: { idBebida: createDetalleComandaDto.fkIdBebida },
       });
-  
+
       if (!findComanda || !findBebida) {
         throw new Error('Comanda o bebida no encontrada');
       }
-  
-      // Calcular el precio basado en el precio de la bebida y la cantidad
-      const calculatedPrice = findBebida.precioBebida * createDetalleComandaDto.cantidad;
-  
+
       // Crear un nuevo detalle de comanda con el precio calculado
       const newDetalleComanda = this.detalleComandaRepository.create({
         cantidad: createDetalleComandaDto.cantidad,
-        precio: calculatedPrice, // Asignar el precio calculado
+        precio: createDetalleComandaDto.precio,
         fkIdComanda: createDetalleComandaDto.fkIdComanda,
         fkIdBebida: createDetalleComandaDto.fkIdBebida,
-        estatusDetalle: 0
+        estatusDetalle: 0,
       });
-  
-      const savedDetallesCom = await this.detalleComandaRepository.save(newDetalleComanda);
-  
+
+      const savedDetallesCom =
+        await this.detalleComandaRepository.save(newDetalleComanda);
+
       if (!savedDetallesCom) {
         return {
           message: 'Error al crear el detalle comanda',
@@ -55,12 +53,7 @@ export class DetalleComandaService {
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         };
       }
-  
-      // Llamar al procedimiento almacenado para calcular el total de la comanda
-      await this.comandaRepository.query('EXEC sp_CalcularTotalComanda @idComanda = @0', [
-        createDetalleComandaDto.fkIdComanda,
-      ]);
-  
+
       const response = {
         statusCode: HttpStatus.OK,
         savedDetallesCom,
@@ -70,141 +63,137 @@ export class DetalleComandaService {
       throw new Error('Error al crear el detalle comanda: ' + error.message);
     }
   }
-  
-  
 
   async findAll() {
-    try{
+    try {
       const detalles = await this.detalleComandaRepository.find({
         relations: ['comanda', 'bebida'],
-      })
-      if(!detalles|| detalles.length===0){
+      });
+      if (!detalles || detalles.length === 0) {
         return {
-          message: "No existen detalles comanda para mostrar",
-          error: "Not Found",
-          statusCode: HttpStatus.NOT_FOUND
-        }
+          message: 'No existen detalles comanda para mostrar',
+          error: 'Not Found',
+          statusCode: HttpStatus.NOT_FOUND,
+        };
       }
 
       const response = {
         statusCode: HttpStatus.OK,
-        detalles
-      }
+        detalles,
+      };
       return response;
-    }catch(error){
-      throw new Error('Error al mostrar todos los detalles comanda: '+ error.message)
+    } catch (error) {
+      throw new Error(
+        'Error al mostrar todos los detalles comanda: ' + error.message,
+      );
     }
   }
 
   async findOne(id: number) {
-    try{
-      const detalleFind = await this.detalleComandaRepository.findOne({
-        where: {idDetalleComanda:id},
-        relations: ['comanda', 'bebida'],
-      })
-      if(!detalleFind){
-        return {
-          message: "Detalle comanda no encontrado",
-          error: "Not Found",
-          statusCode: HttpStatus.NOT_FOUND
-        }
-      }
-      const response = {
-        statusCode: HttpStatus.OK,
-        detalleFind
-      }
-      return response;
-    }catch(error){
-      throw new Error('Error al buscar el detalle comanda con el id: '+error.message)
-    }
-  }
-
-
-  async findDetailByEstatus(estatusDetalle: number) {
     try {
-      // Convertir el parámetro role a número
-      const parsedRole = Number(estatusDetalle);
-      if (isNaN(parsedRole)) {
-        return {
-          message: `El valor proporcionado para el estaus (${estatusDetalle}) no es un número válido`,
-          error: "Bad Request",
-          statusCode: HttpStatus.BAD_REQUEST,
-        };
-      }
-      
-      // Buscar usuarios con el rol especificado
-      const detalles = await this.detalleComandaRepository.find({
-        where: { estatusDetalle: parsedRole },
+      const detalleFind = await this.detalleComandaRepository.findOne({
+        where: { idDetalleComanda: id },
+        relations: ['comanda', 'bebida'],
       });
-  
-      // Verificar si existen usuarios con el rol especificado
-      if (detalles.length === 0) {
+      if (!detalleFind) {
         return {
-          message: `No existen bebidas con el estatusDetalle ${parsedRole} para mostrar`,
-          error: "Not Found",
+          message: 'Detalle comanda no encontrado',
+          error: 'Not Found',
           statusCode: HttpStatus.NOT_FOUND,
         };
       }
-  
-      // Retornar la lista de usuarios con el rol especificado
+      const response = {
+        statusCode: HttpStatus.OK,
+        detalleFind,
+      };
+      return response;
+    } catch (error) {
+      throw new Error(
+        'Error al buscar el detalle comanda con el id: ' + error.message,
+      );
+    }
+  }
+
+  async update(id: number, updateDetalleComandaDto: UpdateDetalleComandaDto) {
+    try {
+      const detalleFind = await this.detalleComandaRepository.findOne({
+        where: { idDetalleComanda: id },
+      });
+      if (!detalleFind) {
+        return {
+          message: 'Detalle comanda no encontrado',
+          error: 'Not Found',
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
+
+      detalleFind.estatusDetalle =
+        updateDetalleComandaDto.estatusDetalle ?? detalleFind.estatusDetalle;
+
+      await this.detalleComandaRepository.save(detalleFind);
+
+      const response = {
+        statusCode: HttpStatus.OK,
+        detalleFind,
+      };
+
+      return response;
+    } catch (error) {
+      throw new Error(
+        'Error al actualizar el detalle comanda con el id: ' + error.message,
+      );
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      const detalleFind = await this.detalleComandaRepository.findOne({
+        where: { idDetalleComanda: id },
+      });
+      if (!detalleFind) {
+        return {
+          message: 'Detalle comanda no encontrado',
+          error: 'Not Found',
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
+      await this.detalleComandaRepository.remove(detalleFind);
+      const response = {
+        message: 'Detalle comanda eliminado correctamente',
+        error: 'OK',
+        statusCode: HttpStatus.OK,
+      };
+      return response;
+    } catch (error) {
+      throw new Error(
+        'Error al eliminar el detalle comanda con el id: ' + error.message,
+      );
+    }
+  }
+
+  async findByFkIdComanda(fkIdComanda: number) {
+    try {
+      const detalles = await this.detalleComandaRepository.find({
+        where: { fkIdComanda },
+        relations: ['comanda', 'bebida'],
+      }); 
+
+      if (!detalles || detalles.length === 0) {
+        return {
+          message: 'No se encontraron detalles para la comanda especificada',
+          error: 'Not Found',
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
+
       return {
         statusCode: HttpStatus.OK,
         detalles,
       };
     } catch (error) {
-      throw new Error(`Error al buscar los bebidas con estatus ${estatusDetalle}: ` + error.message);
-    }
-  }
-
-  async update(id: number, updateDetalleComandaDto: UpdateDetalleComandaDto) {
-    try{
-      const detalleFind = await this.detalleComandaRepository.findOne({
-        where: {idDetalleComanda: id},
-      });
-      if(!detalleFind){
-        return {
-          message: "Detalle comanda no encontrado",
-          error: "Not Found",
-          statusCode: HttpStatus.NOT_FOUND
-        }
-      }
-
-      detalleFind.estatusDetalle = updateDetalleComandaDto.estatusDetalle ?? detalleFind.estatusDetalle;
-      
-      await this.detalleComandaRepository.save(detalleFind);
-
-      const response = {
-        statusCode: HttpStatus.OK,
-        detalleFind
-      }
-
-      return response;
-    }catch(error){
-      throw new Error('Error al actualizar el detalle comanda con el id: '+error.message)
-    }
-  }
-
-  async remove(id: number) {
-    try{
-      const detalleFind = await this.detalleComandaRepository.findOne({
-        where: {idDetalleComanda: id},
-      });
-      if(!detalleFind){
-        return {
-          message: "Detalle comanda no encontrado",
-          error: "Not Found",
-          statusCode: HttpStatus.NOT_FOUND
-        }
-      }
-      await this.detalleComandaRepository.remove(detalleFind);
-      const response ={
-        message: "Detalle comanda eliminado correctamente",
-        error: "OK",
-        statusCode: HttpStatus.OK
-      }
-      return response;
-    }catch(error){
-      throw new Error('Error al eliminar el detalle comanda con el id: '+error.message)
+      throw new Error(
+        'Error al buscar detalles de la comanda: ' + error.message,
+      );
     }
   }
 }

@@ -15,4 +15,8 @@ export class CreateDetalleComandaDto {
     @ApiProperty({ description: 'Id de la bebida, identificador de la bebida a la que corresponde los detalles.'})
     @IsNumber()
     fkIdBebida:number;
+
+    @ApiProperty({ description: 'Precio calculado de la cantidad y el precio de la bebida.'})
+    @IsNumber()
+    precio:number;
 }

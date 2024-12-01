@@ -3,7 +3,7 @@ import { CreateComandaDto } from './create-comanda.dto';
 import { IsNumber, IsString } from 'class-validator';
 
 export class UpdateComandaDto /*extends PartialType(CreateComandaDto)*/ {
-    @ApiProperty({description:'Estatus para saber si la comanda esta activa, 0=libre y 1=ocupada'})
+    @ApiProperty({description:'Estatus para saber su estado actual 0=en proceso, 1=lista, 2=pago'})
     @IsNumber()
     estatusComanda:number;
 
