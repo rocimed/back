@@ -4,7 +4,7 @@ import { UpdateComandaDto } from './dto/update-comanda.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ComandaEntity } from './entities/comanda.entity';
 import { UsuarioEntity } from '@drink/usuarios/entities/usuario.entity';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { MesaEntity } from '@drink/mesas/entities/mesa.entity';
 import { BebidaEntity } from '@drink/bebidas/entities/bebida.entity';
 import { DetalleComandaEntity } from '@drink/detalle-comanda/entities/detalle-comanda.entity';
@@ -42,14 +42,14 @@ export class ComandaService {
       const newComanda = new ComandaEntity();
       newComanda.fechaComanda = new Date(); // Establecer la fecha actual
       newComanda.fkIdMesa = createComandaDto.fkIdMesa;
-      newComanda.estatusComanda = 0; 
-      newComanda.total = createComandaDto.total; 
-      newComanda.metodoPago = ''; 
+      newComanda.estatusComanda = 0;
+      newComanda.total = createComandaDto.total;
+      newComanda.metodoPago = '';
 
       const savedComanda = await this.comandaRepository.save(newComanda);
       const response = {
         statusCode: HttpStatus.OK,
-        newComanda: savedComanda, 
+        newComanda: savedComanda,
       };
       return response;
     } catch (error) {
@@ -60,11 +60,7 @@ export class ComandaService {
   async findAll() {
     try {
       const comandas = await this.comandaRepository.find({
-        relations: [
-          'mesa',
-          'detalleComanda',
-          'detalleComanda.bebida',
-        ],
+        relations: ['mesa', 'detalleComanda', 'detalleComanda.bebida'],
       });
 
       if (!comandas || comandas.length === 0) {
@@ -83,16 +79,12 @@ export class ComandaService {
       throw new Error('Error al buscar las comandas: ' + error.message);
     }
   }
-
+  
   async findOne(id: number) {
     try {
       const comandaFind = await this.comandaRepository.findOne({
         where: { idComanda: id },
-        relations: [
-          'mesa',
-          'detalleComanda',
-          'detalleComanda.bebida',
-        ],
+        relations: ['mesa', 'detalleComanda', 'detalleComanda.bebida'],
       });
       if (!comandaFind) {
         return {
@@ -114,13 +106,13 @@ export class ComandaService {
   async findByMesa(fkIdMesa: number) {
     try {
       const comandas = await this.comandaRepository.find({
-        where: { fkIdMesa },
-        relations: [
-          'detalleComanda',
-          'detalleComanda.bebida',
-        ],
+        where: {
+          fkIdMesa,
+          estatusComanda: Not(In([0, 4])),
+        },
+        relations: ['detalleComanda', 'detalleComanda.bebida'],
       });
-  
+
       if (!comandas || comandas.length === 0) {
         return {
           message: 'No existen comandas para la mesa especificada',
@@ -134,18 +126,17 @@ export class ComandaService {
       };
       return response;
     } catch (error) {
-      throw new Error('Error al buscar las comandas por mesa: ' + error.message);
+      throw new Error(
+        'Error al buscar las comandas por mesa: ' + error.message,
+      );
     }
   }
 
   async findByEstatus(estatus: number) {
-    try{
+    try {
       const comandas = await this.comandaRepository.find({
         where: { estatusComanda: estatus },
-        relations: [
-          'detalleComanda',
-          'detalleComanda.bebida',
-        ],
+        relations: ['mesa', 'detalleComanda', 'detalleComanda.bebida'],
       });
       if (!comandas || comandas.length === 0) {
         return {
@@ -159,44 +150,47 @@ export class ComandaService {
         comandas,
       };
       return response;
-    }
-    catch (error) {
-      throw new Error('Error al buscar las comandas por estatus: ' + error.message);
+    } catch (error) {
+      throw new Error(
+        'Error al buscar las comandas por estatus: ' + error.message,
+      );
     }
   }
 
   async findByUserAndEstado(idUsuario: number, estatus: number) {
-    try{
+    try {
       const comandas = await this.comandaRepository.find({
         where: {
           estatusComanda: estatus,
+          mesa: {
+            fkIdUsuario: idUsuario, 
+          },
         },
         relations: [
-          'mesa',
+          'mesa', 
           'detalleComanda',
           'detalleComanda.bebida',
         ],
       });
 
-      const filteredComandas = comandas.filter(
-        (comanda) => comanda.mesa.fkIdUsuario === idUsuario,
-      );
-
-      if (!filteredComandas || filteredComandas.length === 0) {
+      if (!comandas || comandas.length === 0) {
         return {
-          message: 'No existen comandas para el estatus y el usuario especificados',
+          message:
+            'No existen comandas para el estatus y el usuario especificados',
           error: 'Not Found',
           statusCode: HttpStatus.NOT_FOUND,
         };
       }
+
       const response = {
         statusCode: HttpStatus.OK,
-        filteredComandas,
+        comandas,
       };
       return response;
-    }
-    catch (error) {
-      throw new Error('Error al buscar las comandas por estatus y usuario: ' + error.message);
+    } catch (error) {
+      throw new Error(
+        'Error al buscar las comandas por estatus y usuario: ' + error.message,
+      );
     }
   }
 
@@ -235,7 +229,7 @@ export class ComandaService {
       const comandaFind = await this.comandaRepository.findOne({
         where: { idComanda: id },
       });
-  
+
       if (!comandaFind) {
         return {
           message: 'Comanda no encontrada',
@@ -246,7 +240,7 @@ export class ComandaService {
       const detalleComanda = await this.detalleComandaRepository.find({
         where: { fkIdComanda: id },
       });
-  
+
       if (detalleComanda.length > 0) {
         for (const detalle of detalleComanda) {
           await this.detalleComandaRepository.delete(detalle.idDetalleComanda);
@@ -264,8 +258,4 @@ export class ComandaService {
       );
     }
   }
-  
-
-  
-  
 }
