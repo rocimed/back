@@ -79,12 +79,12 @@ export class ComandaService {
       throw new Error('Error al buscar las comandas: ' + error.message);
     }
   }
-  
+
   async findOne(id: number) {
     try {
       const comandaFind = await this.comandaRepository.findOne({
         where: { idComanda: id },
-        relations: ['mesa', 'detalleComanda', 'detalleComanda.bebida'],
+        relations: ['detalleComanda', 'detalleComanda.bebida'],
       });
       if (!comandaFind) {
         return {
@@ -163,14 +163,10 @@ export class ComandaService {
         where: {
           estatusComanda: estatus,
           mesa: {
-            fkIdUsuario: idUsuario, 
+            fkIdUsuario: idUsuario,
           },
         },
-        relations: [
-          'mesa', 
-          'detalleComanda',
-          'detalleComanda.bebida',
-        ],
+        relations: ['mesa', 'detalleComanda', 'detalleComanda.bebida'],
       });
 
       if (!comandas || comandas.length === 0) {
@@ -190,6 +186,35 @@ export class ComandaService {
     } catch (error) {
       throw new Error(
         'Error al buscar las comandas por estatus y usuario: ' + error.message,
+      );
+    }
+  }
+
+  async findByMesaAndEstatus(fkIdMesa: number, estatus: number) {
+    try {
+      const comandas = await this.comandaRepository.find({
+        where: {
+          fkIdMesa,
+          estatusComanda: estatus,
+        },
+        relations: ['detalleComanda', 'detalleComanda.bebida', 'mesa'],
+      });
+
+      if (!comandas || comandas.length === 0) {
+        return {
+          message: 'No existen comandas para la mesa y estatus especificados',
+          error: 'Not Found',
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
+      const response = {
+        statusCode: HttpStatus.OK,
+        comandas,
+      };
+      return response;
+    } catch (error) {
+      throw new Error(
+        'Error al buscar las comandas por mesa y estatus: ' + error.message,
       );
     }
   }

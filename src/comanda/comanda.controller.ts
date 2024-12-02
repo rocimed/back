@@ -18,7 +18,7 @@ import { response } from 'express';
 @Controller('comanda')
 @ApiTags('Comanda')
 export class ComandaController {
-  constructor(private readonly comandaService: ComandaService) {}
+  constructor(private readonly comandaService: ComandaService) { }
 
   @Post()
   @ApiOperation({
@@ -341,7 +341,7 @@ export class ComandaController {
 
   @Get('mesa/:fkIdMesa')
   @ApiOperation({
-    summary: 'Obtener comandas por mesa',
+    summary: 'Obtener comandas por mesa, excluye aquellas con estado 0 y 4',
     description:
       'EndPoint que devuelve las comandas asociadas a una mesa específica',
   })
@@ -359,6 +359,40 @@ export class ComandaController {
   })
   async findByMesa(@Res() response, @Param('fkIdMesa') fkIdMesa: number) {
     const resStatus = await this.comandaService.findByMesa(fkIdMesa);
+    if (resStatus.statusCode === HttpStatus.NOT_FOUND) {
+      return response.status(HttpStatus.NOT_FOUND).json(resStatus);
+    }
+    return response.status(HttpStatus.OK).json(resStatus);
+  }
+
+  @Get('mesa/:fkIdMesa/estatus/:estatus')
+  @ApiOperation({
+    summary: 'Obtener comandas por id de mesa y estatus',
+    description:
+      'EndPoint que devuelve las comandas asociadas a una mesa y un estatus específicos',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Error interno en el servidor',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description:
+      'No se encontraron comandas para la mesa y estatus especificados',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Comandas obtenidas correctamente',
+  })
+  async findByMesaAndEstatus(
+    @Res() response,
+    @Param('fkIdMesa') fkIdMesa: number,
+    @Param('estatus') estatus: number,
+  ) {
+    const resStatus = await this.comandaService.findByMesaAndEstatus(
+      fkIdMesa,
+      estatus,
+    );
     if (resStatus.statusCode === HttpStatus.NOT_FOUND) {
       return response.status(HttpStatus.NOT_FOUND).json(resStatus);
     }

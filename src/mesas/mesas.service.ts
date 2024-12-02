@@ -103,6 +103,29 @@ export class MesasService {
     }
   }
 
+  async findByUser(fkIdUsuario: number) {
+    try {
+      const mesas = await this.mesaRepository.find({
+        where: { fkIdUsuario },
+      });
+      if (!mesas || mesas.length === 0) {
+        return {
+          message: 'No existen mesas para mostrar',
+          error: 'Not Found',
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
+      const response = {
+        statusCode: HttpStatus.OK,
+        mesas,
+      };
+      return response;
+    } catch (error) {
+      throw new Error('Error al buscar las mesas del usuario con el id: ' + error.message);
+    }
+  }
+  
+
   async update(id: number, updateMesaDto: UpdateMesaDto) {
     try{
       const mesaFind = await this.mesaRepository.findOne({
