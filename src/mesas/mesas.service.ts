@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateMesaDto } from './dto/create-mesa.dto';
 import { UpdateMesaDto } from './dto/update-mesa.dto';
 import { MesaEntity } from './entities/mesa.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsuarioEntity } from '@drink/usuarios/entities/usuario.entity';
 import { response } from 'express';
@@ -122,6 +122,31 @@ export class MesasService {
       return response;
     } catch (error) {
       throw new Error('Error al buscar las mesas del usuario con el id: ' + error.message);
+    }
+  }
+
+  async findByName(nombreMesa: string) {
+    try {
+      const mesas = await this.mesaRepository.find({
+        where: { nombreMesa: Like(`%${nombreMesa}%`) },
+      });
+
+      if (!mesas || mesas.length === 0) {
+        return {
+          message: 'No se encontraron mesas que coincidan con el nombre',
+          error: 'Not Found',
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
+      
+      return {
+        statusCode: HttpStatus.OK,
+        mesas,
+      };
+    } catch (error) {
+      throw new Error(
+        'Error al buscar la mesa con el nombre: ' + error.message,
+      );
     }
   }
   

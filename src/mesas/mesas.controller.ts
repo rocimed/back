@@ -203,6 +203,37 @@ export class MesasController {
     return response.status(HttpStatus.OK).json(resStatus);
   }
 
+  @Get('search/:nombre')
+  @ApiOperation({
+    summary: 'Buscar mesas por nombre',
+    description:
+      'Devuelve una lista de mesas cuyo nombre contiene el texto proporcionado',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Mesas encontradas correctamente',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'No se encontraron mesas',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'No se encontraron mesas',
+          error: 'Not Found',
+        },
+      },
+    },
+  })
+  async findByName(@Res() response, @Param('nombre') nombre: string) {
+    const resStatus = await this.mesasService.findByName(nombre);
+    if (resStatus.statusCode === HttpStatus.NOT_FOUND) {
+      return response.status(HttpStatus.NOT_FOUND).json(resStatus);
+    }
+    return response.status(HttpStatus.OK).json(resStatus);
+  }
+
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar una mesa por id de la base de datos',

@@ -3,7 +3,7 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsuarioEntity } from './entities/usuario.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { response } from 'express';
 import * as bcrypt from 'bcrypt';
 
@@ -116,9 +116,35 @@ export class UsuariosService {
     }
   }
   
+  async findByName(dataUsuario: string) {
+    try {
+      const usuarios = await this.usuarioRepository.find({
+        where: [
+          { nombreUsuario: Like(`%${dataUsuario}%`) },
+          { apellidoPat: Like(`%${dataUsuario}%`) },
+          { apellidoMat: Like(`%${dataUsuario}%`) },
+        ],
+      });
   
+      if (!usuarios || usuarios.length === 0) {
+        return {
+          message: 'No se encontraron usuarios que coincidan con el término',
+          error: 'Not Found',
+          statusCode: HttpStatus.NOT_FOUND,
+        };
+      }
   
-
+      return {
+        statusCode: HttpStatus.OK,
+        usuarios,
+      };
+    } catch (error) {
+      throw new Error(
+        'Error al buscar usuarios: ' + error.message,
+      );
+    }
+  }
+  
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
     try{
       const usuarioFind = await this.usuarioRepository.findOne({

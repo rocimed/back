@@ -218,7 +218,7 @@ export class ComandaService {
       );
     }
   }
-
+  
   async update(id: number, updateComandaDto: UpdateComandaDto) {
     try {
       const comandaFind = await this.comandaRepository.findOne({

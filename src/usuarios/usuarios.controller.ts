@@ -64,7 +64,7 @@ export class UsuariosController {
       loginDto.idUsuario,
       loginDto.contrasena,
     );
-    if (resStatus.statusCode !== HttpStatus.OK) 
+    if (resStatus.statusCode !== HttpStatus.OK)
       return response.status(resStatus.statusCode).json(resStatus);
     return response.status(HttpStatus.OK).json(resStatus);
   }
@@ -243,6 +243,37 @@ export class UsuariosController {
   })
   async findUsersByRole(@Param('rol') rol: number, @Res() response) {
     const resStatus = await this.usuariosService.findUsersByRole(rol);
+    if (resStatus.statusCode === HttpStatus.NOT_FOUND) {
+      return response.status(HttpStatus.NOT_FOUND).json(resStatus);
+    }
+    return response.status(HttpStatus.OK).json(resStatus);
+  }
+
+  @Get('search/:nombre')
+  @ApiOperation({
+    summary: 'Buscar usuarios por nombre',
+    description:
+      'Devuelve una lista de usuarios cuyo nombre contiene el texto proporcionado',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'usuarios encontradas correctamente',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'No se encontraron usuarios',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'No se encontraron usuarios',
+          error: 'Not Found',
+        },
+      },
+    },
+  })
+  async findByName(@Res() response, @Param('nombre') nombre: string) {
+    const resStatus = await this.usuariosService.findByName(nombre);
     if (resStatus.statusCode === HttpStatus.NOT_FOUND) {
       return response.status(HttpStatus.NOT_FOUND).json(resStatus);
     }
